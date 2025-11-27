@@ -1,3 +1,7 @@
+// app/camera.js
+// Camera screen for Whisk. Uses Expo Camera + TensorFlow.js + COCO-SSD
+// to detect animals in a captured frame and draw bounding boxes.
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -8,12 +12,12 @@ import {
   Dimensions,
   Alert,
 } from "react-native";
-import { CameraView, useCameraPermissions } from "expo-camera"; 
+import { CameraView, useCameraPermissions } from "expo-camera"; // Camera API for SDK 54
 import { useRouter } from "expo-router";
 import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-react-native";
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
-import * as FileSystem from "expo-file-system/legacy";
+import * as FileSystem from "expo-file-system/legacy"; // legacy API for readAsStringAsync
 import { decodeJpeg } from "@tensorflow/tfjs-react-native";
 import Svg, { Rect, Text as SvgText } from "react-native-svg";
 
@@ -27,6 +31,7 @@ export default function CameraScreen() {
   const cameraRef = useRef(null);
   const router = useRouter();
 
+  // Request camera permission and load TensorFlow + COCO-SSD model
   useEffect(() => {
     (async () => {
       const { status } = await requestPermission();
@@ -35,8 +40,10 @@ export default function CameraScreen() {
         return;
       }
 
+      // Wait until TensorFlow is ready, then load the detection model
       await tf.ready();
       setTfReady(true);
+
       const loadedModel = await cocoSsd.load();
       setModel(loadedModel);
 
@@ -44,10 +51,11 @@ export default function CameraScreen() {
     })();
   }, []);
 
+  // Convert a captured image URI into a Tensor that COCO-SSD can process
   const imageToTensor = async (uri) => {
     try {
       const imgB64 = await FileSystem.readAsStringAsync(uri, {
-        encoding: "base64", // 
+        encoding: "base64",
       });
       const imgBuffer = tf.util.encodeString(imgB64, "base64").buffer;
       const raw = new Uint8Array(imgBuffer);
@@ -58,6 +66,7 @@ export default function CameraScreen() {
     }
   };
 
+  // Capture an image and run animal detection on it
   const captureAndDetect = async () => {
     if (!cameraRef.current || !model || !tfReady) {
       Alert.alert("Please wait", "Model is still loading...");
@@ -66,10 +75,16 @@ export default function CameraScreen() {
 
     console.log("📸 Capturing image...");
     const photo = await cameraRef.current.takePictureAsync({ base64: false });
-    const imageTensor = await imageToTensor(photo.uri);
 
+    const imageTensor = await imageToTensor(photo.uri);
+    if (!imageTensor) {
+      return;
+    }
+
+    // Run the model on the image tensor
     const predictions = await model.detect(imageTensor);
 
+    // Restrict results to animal classes we care about
     const animalClasses = [
       "dog",
       "cat",
@@ -87,14 +102,19 @@ export default function CameraScreen() {
     setDetections(animals);
     console.log("🐾 Detected animals:", animals);
 
+    // Free tensor memory
     tf.dispose(imageTensor);
   };
 
+  // If camera permission is not granted, show a simple prompt
   if (!permission?.granted)
     return (
       <View style={styles.container}>
         <Text>No access to camera</Text>
-        <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
+        <TouchableOpacity
+          style={styles.permissionButton}
+          onPress={requestPermission}
+        >
           <Text style={{ color: "#fff" }}>Grant Permission</Text>
         </TouchableOpacity>
       </View>
@@ -102,9 +122,10 @@ export default function CameraScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Live camera preview */}
       <CameraView ref={cameraRef} style={styles.camera} facing="back" />
 
-      {/* Draw bounding boxes */}
+      {/* Draw bounding boxes on top of camera view */}
       <Svg style={StyleSheet.absoluteFill}>
         {detections.map((item, i) => {
           const [x, y, w, h] = item.bbox;
@@ -132,13 +153,13 @@ export default function CameraScreen() {
         })}
       </Svg>
 
-      {/* Logo overlay */}
+      {/* Logo + title overlay */}
       <View style={styles.overlay}>
         <Image source={require("../assets/whisk-logo.jpg")} style={styles.logo} />
         <Text style={styles.title}>Whisk Detector</Text>
       </View>
 
-      {/* Buttons */}
+      {/* Action buttons */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={[styles.button, styles.primaryButton]}
@@ -196,6 +217,7 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     borderWidth: 2,
     borderColor: "#A3C4F3",
+    marginTop: 8,
   },
   buttonText: {
     color: "#FFF",
@@ -211,5 +233,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#A3C4F3",
     padding: 15,
     borderRadius: 10,
+    marginTop: 20,
   },
 });

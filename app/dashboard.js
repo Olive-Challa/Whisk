@@ -1,3 +1,7 @@
+// app/dashboard.js
+// Simple dashboard view to summarize recent Whisk activity.
+// Currently uses static placeholder data to show the layout and design.
+
 import React from "react";
 import {
   View,
@@ -14,9 +18,10 @@ export default function Dashboard() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Welcome back to Whisk </Text>
+      {/* Greeting / header */}
+      <Text style={styles.header}>Welcome back to Whisk 🐾</Text>
 
-      {/* Pet Summary Card info about pet biodata name age breed existing vacc info*/} 
+      {/* Pet summary card – currently static example */}
       <View style={styles.card}>
         <Image
           source={require("../assets/whisk-logo.jpg")}
@@ -28,49 +33,51 @@ export default function Dashboard() {
         </View>
       </View>
 
-      {/* Quick Actions  quick help page no idea waht to put yet*/}
+      {/* Quick actions section */}
       <Text style={styles.sectionTitle}>Quick Actions</Text>
       <View style={styles.buttonRow}>
         <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: "#A3C4F3" }]}
           onPress={() => router.push("/camera")}
         >
-          <Text style={styles.buttonText}> Open Camera</Text>
+          <Text style={styles.buttonText}>📸 Open Camera</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: "#B5EAD7" }]}
-          onPress={() => alert("HOLUPPP UPDATES ON THE WAY!")}
+          onPress={() => alert("Pet profiles coming in a future version.")}
         >
-          <Text style={styles.buttonText}> View Pets</Text>
+          <Text style={styles.buttonText}>🐕 View Pets</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Health Tracker */}
+      {/* Health & care section – placeholder content */}
       <Text style={styles.sectionTitle}>Health & Care</Text>
       <View style={styles.healthCard}>
-        <Text style={styles.healthTitle}>Vaccinations up-to-date </Text>
+        <Text style={styles.healthTitle}>Vaccinations up-to-date ✅</Text>
         <Text style={styles.healthSubtext}>Next vet visit: Nov 12, 2025</Text>
       </View>
 
-      {/* Detection History contains logs of all the animals you scanned */}
+      {/* Recent activity section */}
       <Text style={styles.sectionTitle}>Recent Activity</Text>
       <View style={styles.historyCard}>
-        <Text style={styles.historyText}> Dog detected — Oct 28, 2025</Text>
-        <Text style={styles.historyText}> Cat detected — Oct 24, 2025</Text>
-        <Text style={styles.historyText}> New pet profile created — Oct 20, 2025</Text>
+        <Text style={styles.historyText}>🐶 Dog detected — Oct 28, 2025</Text>
+        <Text style={styles.historyText}>🐱 Cat detected — Oct 24, 2025</Text>
+        <Text style={styles.historyText}>
+          🐾 New pet profile created — Oct 20, 2025
+        </Text>
       </View>
 
-      {/* Footer Navigation  other options*/}
+      {/* Simple footer navigation */}
       <View style={styles.footer}>
         <TouchableOpacity onPress={() => router.push("/home")}>
-          <Text style={styles.footerText}> Home</Text>
+          <Text style={styles.footerText}>🏠 Home</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push("/camera")}>
-          <Text style={styles.footerText}> Camera</Text>
+          <Text style={styles.footerText}>📷 Camera</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => alert("Settings coming soon!")}>
-          <Text style={styles.footerText}> Settings</Text>
+          <Text style={styles.footerText}>⚙️ Settings</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

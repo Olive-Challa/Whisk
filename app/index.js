@@ -1,3 +1,8 @@
+// app/index.js
+// Simple login screen for Whisk.
+// Currently uses a placeholder login (hardcoded email + password)
+// and routes to the Home screen on success.
+
 import React, { useState } from "react";
 import {
   View,
@@ -13,36 +18,40 @@ import { useRouter } from "expo-router";
 
 export default function LoginScreen() {
   const router = useRouter();
+
+  // Local state for login form
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // Basic fake login for demo purposes
   const handleLogin = () => {
-  if (!email || !password) {
-    Alert.alert("Missing info", "Please enter both email and password");
-    return;
-  }
+    if (!email || !password) {
+      Alert.alert("Missing info", "Please enter both email and password");
+      return;
+    }
 
-  // Simple placeholder login
-  if (email === "test@test.com" && password === "1234") {
-    router.push("/home");
-  } else {
-    Alert.alert("Login failed", "Invalid credentials");
-  }
-};
-
+    // TODO: Replace with real authentication in future iterations
+    if (email === "test@test.com" && password === "1234") {
+      router.push("/home");
+    } else {
+      Alert.alert("Login failed", "Invalid credentials");
+    }
+  };
 
   return (
     <ImageBackground
-    style={[styles.background, { backgroundColor: "#F8F3FF" }]} // 
-      
+      style={[styles.background, { backgroundColor: "#F8F3FF" }]} // soft pastel background
+      resizeMode="cover"
     >
       <View style={styles.overlay}>
+        {/* App logo */}
         <Image
           source={require("../assets/whisk-logo.jpg")}
           style={styles.logo}
         />
         <Text style={styles.title}>Whisk</Text>
 
+        {/* Email input */}
         <TextInput
           style={styles.input}
           placeholder="Email"
@@ -53,6 +62,7 @@ export default function LoginScreen() {
           autoCapitalize="none"
         />
 
+        {/* Password input */}
         <TextInput
           style={styles.input}
           placeholder="Password"
@@ -62,10 +72,12 @@ export default function LoginScreen() {
           onChangeText={setPassword}
         />
 
+        {/* Login button */}
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Log In</Text>
         </TouchableOpacity>
 
+        {/* Simple sign-up hint (placeholder) */}
         <Text style={styles.footer}>New to Whisk? Sign up here</Text>
       </View>
     </ImageBackground>

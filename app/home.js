@@ -1,13 +1,16 @@
+// app/home.js
+// Home screen for Whisk. Acts as a simple hub with navigation
+// to the camera and (in the future) other core features.
+
 import React from "react";
 import {
-  View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ImageBackground,
   Image,
-  SafeAreaView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
 export default function HomeScreen() {
@@ -19,11 +22,12 @@ export default function HomeScreen() {
       resizeMode="cover"
     >
       <SafeAreaView style={styles.overlay}>
+        {/* Logo and welcome text */}
         <Image source={require("../assets/whisk-logo.jpg")} style={styles.logo} />
         <Text style={styles.title}>Welcome to Whisk</Text>
         <Text style={styles.subtitle}>Your smart animal companion 🐾</Text>
 
-        {/* Open Camera Button */}
+        {/* Navigation: open camera */}
         <TouchableOpacity
           style={[styles.button, styles.primaryButton]}
           onPress={() => router.push("/camera")}
@@ -31,15 +35,7 @@ export default function HomeScreen() {
           <Text style={styles.buttonText}>Open Camera</Text>
         </TouchableOpacity>
 
-        {/* Go to Dashboard Button */}
-        <TouchableOpacity
-          style={[styles.button, styles.primaryButton, { backgroundColor: "#B5EAD7" }]}
-          onPress={() => router.push("/dashboard")}
-        >
-          <Text style={styles.buttonText}>Go to Dashboard</Text>
-        </TouchableOpacity>
-
-        {/* About Whisk */}
+        {/* Placeholder for About section */}
         <TouchableOpacity
           style={[styles.button, styles.secondaryButton]}
           onPress={() => alert("About Whisk coming soon!")}
@@ -47,7 +43,7 @@ export default function HomeScreen() {
           <Text style={styles.buttonTextAlt}>About Whisk</Text>
         </TouchableOpacity>
 
-        {/* Settings */}
+        {/* Placeholder for Settings */}
         <TouchableOpacity
           style={[styles.button, styles.secondaryButton]}
           onPress={() => alert("Settings coming soon!")}
