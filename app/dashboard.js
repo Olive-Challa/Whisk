@@ -1,8 +1,10 @@
 // app/dashboard.js
-// Simple dashboard view to summarize recent Whisk activity.
-// Currently uses static placeholder data to show the layout and design.
+// Dashboard view for Whisk.
+// Displays detection history saved via AsyncStorage (utils/storage.js).
+// Designed to support AI-based breed detection with graceful fallback
+// for mixed or unknown breeds.
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -12,70 +14,122 @@ import {
   ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { getDetectedPets } from "../utils/storage";
 
 export default function Dashboard() {
   const router = useRouter();
+  const [detectedPets, setDetectedPets] = useState([]);
+
+  // Reload detection history whenever dashboard opens
+  useEffect(() => {
+    const loadPets = async () => {
+      const pets = await getDetectedPets();
+      setDetectedPets(pets);
+    };
+
+    loadPets();
+  }, []);
+
+  const lastPet = detectedPets.length > 0 ? detectedPets[0] : null;
+
+  const formatDate = (iso) => {
+    if (!iso) return "";
+    return new Date(iso).toLocaleString();
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Greeting / header */}
+      {/* Header */}
       <Text style={styles.header}>Welcome back to Whisk 🐾</Text>
 
-      {/* Pet summary card – currently static example */}
+      {/* Last Detected Pet */}
       <View style={styles.card}>
         <Image
           source={require("../assets/whisk-logo.jpg")}
           style={styles.petImage}
         />
+
         <View style={{ flex: 1 }}>
           <Text style={styles.cardTitle}>Last Detected Pet</Text>
-          <Text style={styles.cardSubtitle}>Dog • 2 days ago</Text>
+
+          {lastPet ? (
+            <>
+              <Text style={styles.cardSubtitle}>
+                {lastPet.species.toUpperCase()} •{" "}
+                {Math.round(lastPet.confidence * 100)}% confidence
+              </Text>
+
+              <Text style={styles.breedText}>
+                Breed:{" "}
+                {lastPet.breedGuess && lastPet.breedGuess !== "Unknown"
+                  ? lastPet.breedGuess
+                  : "Mixed / Unknown"}
+              </Text>
+
+              <Text style={styles.timeText}>
+                {formatDate(lastPet.detectedAt)}
+              </Text>
+            </>
+          ) : (
+            <Text style={styles.cardSubtitle}>
+              No detections yet — try uploading a photo!
+            </Text>
+          )}
         </View>
       </View>
 
-      {/* Quick actions section */}
+      {/* Quick Actions */}
       <Text style={styles.sectionTitle}>Quick Actions</Text>
       <View style={styles.buttonRow}>
         <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: "#A3C4F3" }]}
-          onPress={() => router.push("/camera")}
+          onPress={() => router.push("/upload")}
         >
-          <Text style={styles.buttonText}>📸 Open Camera</Text>
+          <Text style={styles.buttonText}>📸 Upload Photo</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: "#B5EAD7" }]}
-          onPress={() => alert("Pet profiles coming in a future version.")}
+          onPress={() =>
+            alert(
+              "If we can’t identify a specific breed, Whisk provides guidance for mixed-breed pets."
+            )
+          }
         >
-          <Text style={styles.buttonText}>🐕 View Pets</Text>
+          <Text style={styles.buttonText}>🐕 Breed Help</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Health & care section – placeholder content */}
-      <Text style={styles.sectionTitle}>Health & Care</Text>
-      <View style={styles.healthCard}>
-        <Text style={styles.healthTitle}>Vaccinations up-to-date ✅</Text>
-        <Text style={styles.healthSubtext}>Next vet visit: Nov 12, 2025</Text>
-      </View>
-
-      {/* Recent activity section */}
+      {/* Recent Activity */}
       <Text style={styles.sectionTitle}>Recent Activity</Text>
       <View style={styles.historyCard}>
-        <Text style={styles.historyText}>🐶 Dog detected — Oct 28, 2025</Text>
-        <Text style={styles.historyText}>🐱 Cat detected — Oct 24, 2025</Text>
-        <Text style={styles.historyText}>
-          🐾 New pet profile created — Oct 20, 2025
-        </Text>
+        {detectedPets.length === 0 ? (
+          <Text style={styles.historyText}>
+            No activity yet — upload your first pet 🐾
+          </Text>
+        ) : (
+          detectedPets.slice(0, 5).map((pet, index) => (
+            <Text key={index} style={styles.historyText}>
+              🐾 {pet.species} •{" "}
+              {pet.breedGuess && pet.breedGuess !== "Unknown"
+                ? pet.breedGuess
+                : "Mixed / Unknown"}{" "}
+              • {Math.round(pet.confidence * 100)}%
+            </Text>
+          ))
+        )}
       </View>
 
-      {/* Simple footer navigation */}
+      {/* Footer Navigation */}
       <View style={styles.footer}>
         <TouchableOpacity onPress={() => router.push("/home")}>
           <Text style={styles.footerText}>🏠 Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push("/camera")}>
-          <Text style={styles.footerText}>📷 Camera</Text>
+
+        <TouchableOpacity onPress={() => router.push("/upload")}>
+          <Text style={styles.footerText}>📷 Upload</Text>
         </TouchableOpacity>
+
         <TouchableOpacity onPress={() => alert("Settings coming soon!")}>
           <Text style={styles.footerText}>⚙️ Settings</Text>
         </TouchableOpacity>
@@ -122,7 +176,18 @@ const styles = StyleSheet.create({
     color: "#444",
   },
   cardSubtitle: {
-    color: "#777",
+    color: "#555",
+    marginTop: 4,
+  },
+  breedText: {
+    marginTop: 4,
+    color: "#7C83FD",
+    fontWeight: "600",
+  },
+  timeText: {
+    marginTop: 2,
+    fontSize: 12,
+    color: "#999",
   },
   sectionTitle: {
     alignSelf: "flex-start",
@@ -136,6 +201,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
+    marginBottom: 20,
   },
   actionButton: {
     flex: 1,
@@ -147,25 +213,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#FFF",
     fontWeight: "600",
-  },
-  healthCard: {
-    backgroundColor: "#FFF",
-    borderRadius: 20,
-    padding: 20,
-    width: "100%",
-    marginBottom: 20,
-    shadowColor: "#B5EAD7",
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-  },
-  healthTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#444",
-  },
-  healthSubtext: {
-    color: "#777",
-    marginTop: 5,
   },
   historyCard: {
     backgroundColor: "#FFF",
