@@ -6,9 +6,10 @@ import { Stack } from "expo-router";
 export default function Layout() {
   return (
     <Stack
+      initialRouteName="index"
       screenOptions={{
-        headerShown: false,        // We use our own custom headers / layouts
-        animation: "slide_from_right", // Smooth navigation transitions
+        headerShown: false,
+        animation: "slide_from_right",
       }}
     />
   );

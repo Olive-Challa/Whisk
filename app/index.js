@@ -1,6 +1,6 @@
 // app/index.js
 // Simple login screen for Whisk.
-// Currently uses a placeholder login (hardcoded email + password)
+// Uses a placeholder login (hardcoded email + password)
 // and routes to the Home screen on success.
 
 import React, { useState } from "react";
@@ -32,7 +32,8 @@ export default function LoginScreen() {
 
     // TODO: Replace with real authentication in future iterations
     if (email === "test@test.com" && password === "1234") {
-      router.push("/home");
+      // ✅ replace prevents navigating back to login after success
+      router.replace("/home");
     } else {
       Alert.alert("Login failed", "Invalid credentials");
     }
@@ -40,7 +41,7 @@ export default function LoginScreen() {
 
   return (
     <ImageBackground
-      style={[styles.background, { backgroundColor: "#F8F3FF" }]} // soft pastel background
+      style={[styles.background, { backgroundColor: "#F8F3FF" }]}
       resizeMode="cover"
     >
       <View style={styles.overlay}>
@@ -77,8 +78,8 @@ export default function LoginScreen() {
           <Text style={styles.buttonText}>Log In</Text>
         </TouchableOpacity>
 
-        {/* Simple sign-up hint (placeholder) */}
-        <Text style={styles.footer}>New to Whisk? Sign up here</Text>
+        {/* Placeholder footer */}
+        <Text style={styles.footer}>New to Whisk? Sign up coming soon</Text>
       </View>
     </ImageBackground>
   );
@@ -87,7 +88,6 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    resizeMode: "cover",
     justifyContent: "center",
     alignItems: "center",
   },

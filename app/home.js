@@ -1,6 +1,6 @@
 // app/home.js
 // Home screen for Whisk. Acts as a simple hub with navigation
-// to the camera and (in the future) other core features.
+// to Upload + Dashboard (and future core features).
 
 import React from "react";
 import {
@@ -23,16 +23,27 @@ export default function HomeScreen() {
     >
       <SafeAreaView style={styles.overlay}>
         {/* Logo and welcome text */}
-        <Image source={require("../assets/whisk-logo.jpg")} style={styles.logo} />
+        <Image
+          source={require("../assets/whisk-logo.jpg")}
+          style={styles.logo}
+        />
         <Text style={styles.title}>Welcome to Whisk</Text>
         <Text style={styles.subtitle}>Your smart animal companion 🐾</Text>
 
-        {/* Navigation: open camera */}
+        {/* Main action: Upload photo */}
         <TouchableOpacity
           style={[styles.button, styles.primaryButton]}
-          onPress={() => router.push("/camera")}
+          onPress={() => router.push("/upload")}
         >
-          <Text style={styles.buttonText}>Open Camera</Text>
+          <Text style={styles.buttonText}>Upload Pet Photo</Text>
+        </TouchableOpacity>
+
+        {/* Dashboard */}
+        <TouchableOpacity
+          style={[styles.button, styles.secondaryButton]}
+          onPress={() => router.push("/dashboard")}
+        >
+          <Text style={styles.buttonTextAlt}>Go to Dashboard</Text>
         </TouchableOpacity>
 
         {/* Placeholder for About section */}
@@ -82,11 +93,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#7C83FD",
     marginBottom: 10,
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
     color: "#555",
     marginBottom: 30,
+    textAlign: "center",
   },
   button: {
     width: "100%",
