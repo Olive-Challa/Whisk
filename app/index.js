@@ -1,142 +1,234 @@
 // app/index.js
-// Simple login screen for Whisk.
-// Uses a placeholder login (hardcoded email + password)
-// and routes to the Home screen on success.
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
-  ImageBackground,
+  TouchableOpacity,
   Image,
+  ActivityIndicator,
   Alert,
-} from "react-native";
-import { useRouter } from "expo-router";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { MaterialIcons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
 
-  // Local state for login form
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    iosClientId: '718169065254-r9ipjqiu10778lvj6o0s9di7cvmi7s5k.apps.googleusercontent.com',
+    webClientId: '718169065254-b1k3k1tab2gnk76igkor1t3j0h1hmliq.apps.googleusercontent.com',
+  });
 
-  // Basic fake login for demo purposes
-  const handleLogin = () => {
-    if (!email || !password) {
-      Alert.alert("Missing info", "Please enter both email and password");
-      return;
-    }
+  // Check if user is already logged in
+  useEffect(() => {
+    checkLoginStatus();
+  }, []);
 
-    // TODO: Replace with real authentication in future iterations
-    if (email === "test@test.com" && password === "1234") {
-      // ✅ replace prevents navigating back to login after success
-      router.replace("/home");
-    } else {
-      Alert.alert("Login failed", "Invalid credentials");
+  // Handle OAuth response
+  useEffect(() => {
+    handleSignInResponse();
+  }, [response]);
+
+  const checkLoginStatus = async () => {
+    try {
+      const userData = await AsyncStorage.getItem('userInfo');
+      if (userData) {
+        setUserInfo(JSON.parse(userData));
+        router.replace('/home');
+      }
+    } catch (error) {
+      console.error('Error checking login status:', error);
     }
   };
 
+  const handleSignInResponse = async () => {
+    if (response?.type === 'success') {
+      const { authentication } = response;
+      
+      try {
+        setLoading(true);
+        
+        // Get user info from Google
+        const userInfoResponse = await fetch(
+          'https://www.googleapis.com/userinfo/v2/me',
+          {
+            headers: { Authorization: `Bearer ${authentication.accessToken}` },
+          }
+        );
+        
+        const user = await userInfoResponse.json();
+        
+        // Save user info
+        await AsyncStorage.setItem('userInfo', JSON.stringify(user));
+        setUserInfo(user);
+        
+        console.log('Signed in as:', user.email);
+        router.replace('/home');
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+        Alert.alert('Error', 'Failed to get user information');
+      } finally {
+        setLoading(false);
+      }
+    } else if (response?.type === 'error') {
+      Alert.alert('Error', 'Authentication failed. Please try again.');
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    setLoading(true);
+    try {
+      await promptAsync();
+    } catch (error) {
+      console.error('Sign in error:', error);
+      Alert.alert('Error', 'Failed to sign in');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const skipLogin = () => {
+    router.replace('/home');
+  };
+
   return (
-    <ImageBackground
-      style={[styles.background, { backgroundColor: "#F8F3FF" }]}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay}>
-        {/* App logo */}
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
         <Image
-          source={require("../assets/whisk-logo.jpg")}
+          source={require('../assets/whisk-logo.jpg')}
           style={styles.logo}
         />
-        <Text style={styles.title}>Whisk</Text>
+        
+        <Text style={styles.title}>Welcome to Whisk</Text>
+        <Text style={styles.subtitle}>AI-powered pet care assistant</Text>
 
-        {/* Email input */}
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#B0AEBF"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+        <View style={styles.features}>
+          <View style={styles.feature}>
+            <MaterialIcons name="pets" size={24} color="#7C83FD" />
+            <Text style={styles.featureText}>Breed detection</Text>
+          </View>
+          <View style={styles.feature}>
+            <MaterialIcons name="local-hospital" size={24} color="#7C83FD" />
+            <Text style={styles.featureText}>Find nearby vets</Text>
+          </View>
+          <View style={styles.feature}>
+            <MaterialIcons name="favorite" size={24} color="#7C83FD" />
+            <Text style={styles.featureText}>Pet health tracking</Text>
+          </View>
+        </View>
 
-        {/* Password input */}
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#B0AEBF"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-
-        {/* Login button */}
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Log In</Text>
+        <TouchableOpacity
+          style={styles.googleButton}
+          onPress={signInWithGoogle}
+          disabled={loading || !request}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <MaterialIcons name="login" size={24} color="#fff" />
+              <Text style={styles.googleButtonText}>Sign in with Google</Text>
+            </>
+          )}
         </TouchableOpacity>
 
-        {/* Placeholder footer */}
-        <Text style={styles.footer}>New to Whisk? Sign up coming soon</Text>
+        <TouchableOpacity
+          style={styles.skipButton}
+          onPress={skipLogin}
+        >
+          <Text style={styles.skipButtonText}>Continue without sign in</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.disclaimer}>
+          By signing in, you agree to our Terms of Service and Privacy Policy
+        </Text>
       </View>
-    </ImageBackground>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
+  container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#F8F3FF',
   },
-  overlay: {
-    backgroundColor: "rgba(255,255,255,0.8)",
-    padding: 25,
-    borderRadius: 25,
-    alignItems: "center",
-    width: "85%",
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
   },
   logo: {
-    width: 80,
-    height: 80,
-    marginBottom: 15,
-  },
-  title: {
-    fontSize: 34,
-    fontWeight: "700",
-    color: "#7C83FD",
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     marginBottom: 20,
   },
-  input: {
-    width: "100%",
-    height: 50,
-    backgroundColor: "#F4F3FF",
-    borderRadius: 15,
-    paddingHorizontal: 15,
-    color: "#333",
-    marginBottom: 12,
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#7C83FD',
+    marginBottom: 8,
   },
-  button: {
-    backgroundColor: "#A3C4F3",
-    paddingVertical: 14,
-    borderRadius: 15,
-    width: "100%",
-    alignItems: "center",
-    marginTop: 10,
-    shadowColor: "#A3C4F3",
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 40,
   },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "600",
+  features: {
+    width: '100%',
+    marginBottom: 40,
+  },
+  feature: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 20,
+  },
+  featureText: {
+    fontSize: 16,
+    color: '#333',
+    marginLeft: 12,
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#7C83FD',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    width: '100%',
+    gap: 12,
+  },
+  googleButtonText: {
+    color: '#fff',
     fontSize: 18,
+    fontWeight: '600',
   },
-  footer: {
-    color: "#888",
+  skipButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+  },
+  skipButtonText: {
+    color: '#7C83FD',
     fontSize: 14,
+    textDecorationLine: 'underline',
+  },
+  disclaimer: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'center',
     marginTop: 20,
+    paddingHorizontal: 40,
   },
 });

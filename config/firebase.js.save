@@ -1,0 +1,16 @@
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+
+x^X// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "whisk-app-XXXXX.firebaseapp.com",
+  projectId: "whisk-app-XXXXX",
+  storageBucket: "whisk-app-XXXXX.appspot.com",
+  messagingSenderId: "XXXXX",
+  appId: "XXXXX"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);

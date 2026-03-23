@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.mytensorapp"
+      "bundleIdentifier": "com.olivechalla.whiskapp"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +23,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.mytensorapp"
+      "package": "com.olivechalla.whiskapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
